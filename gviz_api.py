@@ -26,8 +26,10 @@ Google Visualization API.
 
 __author__ = "Amit Weinstein, Misha Seltzer, Jacob Baskin"
 
-import cgi
-import cStringIO
+import six
+six.add_move(six.MovedAttribute('html_escape', 'cgi', 'html', 'escape'))
+
+from six.moves import html_escape
 import csv
 import datetime
 try:
@@ -35,6 +37,18 @@ try:
 except ImportError:
   import simplejson as json
 import types
+
+
+if six.PY3:
+  def csv_enc(s, _=None):
+    return s
+  def csv_dec(s, _=None):
+    return s
+else:
+  def csv_enc(s, encoding="utf-8"):
+    return s.encode(encoding)
+  def csv_dec(s, encoding="utf-8"):
+    return s.decode(encoding)
 
 
 class DataTableException(Exception):
@@ -217,7 +231,7 @@ class DataTable(object):
           (len(value) == 3 and not isinstance(value[2], dict))):
         raise DataTableException("Wrong format for value and formatting - %s." %
                                  str(value))
-      if not isinstance(value[1], types.StringTypes + (types.NoneType,)):
+      if not isinstance(value[1], (six.string_types, type(None))):
         raise DataTableException("Formatted value is not string, given %s." %
                                  type(value[1]))
       js_value = DataTable.CoerceValue(value[0], value_type)
@@ -230,15 +244,17 @@ class DataTable(object):
       return bool(value)
 
     elif value_type == "number":
-      if isinstance(value, (int, long, float)):
+      if isinstance(value, (six.integer_types, float)):
         return value
       raise DataTableException("Wrong type %s when expected number" % t_value)
 
     elif value_type == "string":
-      if isinstance(value, unicode):
+      if isinstance(value, six.text_type):
         return value
+      elif isinstance(value, six.binary_type):
+        return value.decode("utf-8")
       else:
-        return str(value).decode("utf-8")
+        return six.text_type(value)
 
     elif value_type == "date":
       if isinstance(value, datetime.datetime):
@@ -295,17 +311,19 @@ class DataTable(object):
   @staticmethod
   def ToString(value):
     if value is None:
-      return "(empty)"
+      return six.u("(empty)")
     elif isinstance(value, (datetime.datetime,
                             datetime.date,
                             datetime.time)):
-      return str(value)
-    elif isinstance(value, unicode):
+      return six.text_type(value)
+    elif isinstance(value, six.text_type):
       return value
     elif isinstance(value, bool):
-      return str(value).lower()
+      return six.text_type(value).lower()
+    elif isinstance(value, six.binary_type):
+      return value.decode("utf-8")
     else:
-      return str(value).decode("utf-8")
+      return six.text_type(value)
 
   @staticmethod
   def ColumnTypeParser(description):
@@ -333,17 +351,17 @@ class DataTable(object):
     if not description:
       raise DataTableException("Description error: empty description given")
 
-    if not isinstance(description, (types.StringTypes, tuple)):
+    if not isinstance(description, (six.string_types, tuple)):
       raise DataTableException("Description error: expected either string or "
                                "tuple, got %s." % type(description))
 
-    if isinstance(description, types.StringTypes):
+    if isinstance(description, six.string_types):
       description = (description,)
 
     # According to the tuple's length, we fill the keys
     # We verify everything is of type string
     for elem in description[:3]:
-      if not isinstance(elem, types.StringTypes):
+      if not isinstance(elem, six.string_types):
         raise DataTableException("Description error: expected tuple of "
                                  "strings, current element of type %s." %
                                  type(elem))
@@ -460,7 +478,7 @@ class DataTable(object):
       -- second 'b' is the label, and {} is the custom properties field.
     """
     # For the recursion step, we check for a scalar object (string or tuple)
-    if isinstance(table_description, (types.StringTypes, tuple)):
+    if isinstance(table_description, (six.string_types, tuple)):
       parsed_col = DataTable.ColumnTypeParser(table_description)
       parsed_col["depth"] = depth
       parsed_col["container"] = "scalar"
@@ -495,9 +513,9 @@ class DataTable(object):
     # dictionary).
     # NOTE: this way of differentiating might create ambiguity. See docs.
     if (len(table_description) != 1 or
-        (isinstance(table_description.keys()[0], types.StringTypes) and
-         isinstance(table_description.values()[0], tuple) and
-         len(table_description.values()[0]) < 4)):
+        (isinstance(list(table_description.keys())[0], six.string_types) and
+         isinstance(list(table_description.values())[0], tuple) and
+         len(list(table_description.values())[0]) < 4)):
       # This is the most inner dictionary. Parsing types.
       columns = []
       # We sort the items, equivalent to sort the keys since they are unique
@@ -513,11 +531,11 @@ class DataTable(object):
         columns.append(parsed_col)
       return columns
     # This is an outer dictionary, must have at most one key.
-    parsed_col = DataTable.ColumnTypeParser(table_description.keys()[0])
+    parsed_col = DataTable.ColumnTypeParser(list(table_description.keys())[0])
     parsed_col["depth"] = depth
     parsed_col["container"] = "dict"
     return ([parsed_col] +
-            DataTable.TableDescriptionParser(table_description.values()[0],
+            DataTable.TableDescriptionParser(list(table_description.values())[0],
                                              depth=depth + 1))
 
   @property
@@ -658,30 +676,27 @@ class DataTable(object):
     if not order_by:
       return self.__data
 
-    proper_sort_keys = []
-    if isinstance(order_by, types.StringTypes) or (
+    data = self.__data
+    if isinstance(order_by, six.string_types) or (
         isinstance(order_by, tuple) and len(order_by) == 2 and
         order_by[1].lower() in ["asc", "desc"]):
       order_by = (order_by,)
-    for key in order_by:
-      if isinstance(key, types.StringTypes):
-        proper_sort_keys.append((key, 1))
+
+    for key in reversed(order_by):
+      if isinstance(key, six.string_types):
+        key_fn = lambda row: row[0].get(key)
+        reverse = False
       elif (isinstance(key, (list, tuple)) and len(key) == 2 and
             key[1].lower() in ("asc", "desc")):
-        proper_sort_keys.append((key[0], key[1].lower() == "asc" and 1 or -1))
+        key_fn = lambda row: row[0].get(key[0])
+        reverse = False if key[1].lower() == "asc" else True
       else:
         raise DataTableException("Expected tuple with second value: "
                                  "'asc' or 'desc'")
 
-    def SortCmpFunc(row1, row2):
-      """cmp function for sorted. Compares by keys and 'asc'/'desc' keywords."""
-      for key, asc_mult in proper_sort_keys:
-        cmp_result = asc_mult * cmp(row1[0].get(key), row2[0].get(key))
-        if cmp_result:
-          return cmp_result
-      return 0
+      data = sorted(data, key=key_fn, reverse=reverse)
 
-    return sorted(self.__data, cmp=SortCmpFunc)
+    return data
 
   def ToJSCode(self, name, columns_order=None, order_by=()):
     """Writes the data table as a JS code string.
@@ -810,7 +825,7 @@ class DataTable(object):
     columns_list = []
     for col in columns_order:
       columns_list.append(header_cell_template %
-                          cgi.escape(col_dict[col]["label"]))
+                          html_escape(col_dict[col]["label"]))
     columns_html = columns_template % "".join(columns_list)
 
     rows_list = []
@@ -825,9 +840,9 @@ class DataTable(object):
           value = self.CoerceValue(row[col], col_dict[col]["type"])
         if isinstance(value, tuple):
           # We have a formatted value and we're going to use it
-          cells_list.append(cell_template % cgi.escape(self.ToString(value[1])))
+          cells_list.append(cell_template % html_escape(self.ToString(value[1])))
         else:
-          cells_list.append(cell_template % cgi.escape(self.ToString(value)))
+          cells_list.append(cell_template % html_escape(self.ToString(value)))
       rows_list.append(row_template % "".join(cells_list))
     rows_html = rows_template % "".join(rows_list)
 
@@ -835,9 +850,6 @@ class DataTable(object):
 
   def ToCsv(self, columns_order=None, order_by=(), separator=","):
     """Writes the data table as a CSV string.
-
-    Output is encoded in UTF-8 because the Python "csv" module can't handle
-    Unicode properly according to its documentation.
 
     Args:
       columns_order: Optional. Specifies the order of columns in the
@@ -860,14 +872,14 @@ class DataTable(object):
       DataTableException: The data does not match the type.
     """
 
-    csv_buffer = cStringIO.StringIO()
+    csv_buffer = six.StringIO()
     writer = csv.writer(csv_buffer, delimiter=separator)
 
     if columns_order is None:
       columns_order = [col["id"] for col in self.__columns]
     col_dict = dict([(col["id"], col) for col in self.__columns])
 
-    writer.writerow([col_dict[col]["label"].encode("utf-8")
+    writer.writerow([csv_enc(col_dict[col]["label"])
                      for col in columns_order])
 
     # We now go over the data and add each row
@@ -881,13 +893,14 @@ class DataTable(object):
         if isinstance(value, tuple):
           # We have a formatted value. Using it only for date/time types.
           if col_dict[col]["type"] in ["date", "datetime", "timeofday"]:
-            cells_list.append(self.ToString(value[1]).encode("utf-8"))
+            cells_list.append(csv_enc(self.ToString(value[1])))
           else:
-            cells_list.append(self.ToString(value[0]).encode("utf-8"))
+            cells_list.append(csv_enc(self.ToString(value[0])))
         else:
-          cells_list.append(self.ToString(value).encode("utf-8"))
+          cells_list.append(csv_enc(self.ToString(value)))
       writer.writerow(cells_list)
-    return csv_buffer.getvalue()
+
+    return csv_dec(csv_buffer.getvalue())
 
   def ToTsvExcel(self, columns_order=None, order_by=()):
     """Returns a file in tab-separated-format readable by MS Excel.
@@ -903,7 +916,7 @@ class DataTable(object):
       A tab-separated little endian UTF16 file representing the table.
     """
     return (self.ToCsv(columns_order, order_by, separator="\t")
-            .decode("utf-8").encode("UTF-16LE"))
+            .encode("UTF-16LE"))
 
   def _ToJSonObj(self, columns_order=None, order_by=()):
     """Returns an object suitable to be converted to JSON.
@@ -1033,13 +1046,13 @@ class DataTable(object):
 
     response_obj = {
         "version": "0.6",
-        "reqId": str(req_id),
+        "reqId": six.text_type(req_id),
         "table": self._ToJSonObj(columns_order, order_by),
         "status": "ok"
     }
     encoder = DataTableJSONEncoder()
     return "%s(%s);" % (response_handler,
-                        encoder.encode(response_obj).encode("utf-8"))
+                        encoder.encode(response_obj))
 
   def ToResponse(self, columns_order=None, order_by=(), tqx=""):
     """Writes the right response according to the request string passed in tqx.

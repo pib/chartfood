@@ -18,9 +18,9 @@
 
 __author__ = "Misha Seltzer"
 
+from setuptools import setup
 import distutils.core
 import unittest
-import gviz_api_test
 
 
 class TestCommand(distutils.core.Command):
@@ -37,12 +37,13 @@ class TestCommand(distutils.core.Command):
 
   def run(self):
     """The run method - running the tests on invocation."""
+    import gviz_api_test
     suite = unittest.TestLoader().loadTestsFromTestCase(
         gviz_api_test.DataTableTest)
     unittest.TextTestRunner().run(suite)
 
 
-distutils.core.setup(
+setup(
     name="gviz_api.py",
     version="1.8.2",
     description="Python API for Google Visualization",
@@ -52,6 +53,7 @@ structures into Google Visualization JS code, DataTable JSon construction
 string or JSon response for Query object.
 """.strip(),
     author="Amit Weinstein, Misha Seltzer",
+    install_requires=['six'],
     license="Apache 2.0",
     url="http://code.google.com/p/google-visualization-python/",
     py_modules=["gviz_api"],
