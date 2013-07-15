@@ -37,15 +37,15 @@ class TestCommand(distutils.core.Command):
 
   def run(self):
     """The run method - running the tests on invocation."""
-    import gviz_api_test
+    from test import gviz_api_test
     suite = unittest.TestLoader().loadTestsFromTestCase(
         gviz_api_test.DataTableTest)
     unittest.TextTestRunner().run(suite)
 
 
 setup(
-    name="gviz_api.py",
-    version="1.8.2",
+    name="pyramid-charts",
+    version="0.1",
     description="Python API for Google Visualization",
     long_description="""
 The Python API for Google Visualization makes it easy to convert python data
@@ -55,7 +55,7 @@ string or JSon response for Query object.
     author="Amit Weinstein, Misha Seltzer",
     install_requires=['six'],
     license="Apache 2.0",
-    url="http://code.google.com/p/google-visualization-python/",
-    py_modules=["gviz_api"],
+    url="https://github.com/pib/pyramid-charts",
+    py_modules=["pyramid_charts"],
     cmdclass={"test": TestCommand},
 )
