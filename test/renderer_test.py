@@ -32,6 +32,17 @@ class GoogleChartTest(unittest.TestCase):
         self.day_score_json = json.dumps(day_score_dict, separators=(',', ':'),
                                          sort_keys=True)
 
+        self.inline_prefix = '\n'.join((
+            '<script>',
+            "  google.load('visualization', '1');",
+            '  google.setOnLoadCallback(function() {',
+            '    google.visualization.drawChart({'))
+        self.inline_postfix = '\n'.join((
+            '    });',
+            '  });',
+            '</script>',
+            ''))
+
     def tearDown(self):
         pyramid.testing.tearDown()
 
@@ -41,17 +52,11 @@ class GoogleChartTest(unittest.TestCase):
 
         rendered = render('chart', self.day_score)
         expected = '\n'.join((
-            '<script>',
-            "  google.load('visualization', '1');",
-            '  google.setOnLoadCallback(function() {',
-            '    google.visualization.drawChart({',
+            self.inline_prefix,
             "      containerId: 'chart',",
             "      chartType: 'LineChart',",
             '      dataTable: {}'.format(self.day_score_json),
-            '    });',
-            '  });',
-            '</script>',
-            ''))
+            self.inline_postfix))
         self.assertEqual(rendered, expected)
 
     def testRenderDefaultChartResponse(self):
@@ -104,17 +109,11 @@ class GoogleChartTest(unittest.TestCase):
 
         rendered = render('chart', {'datasource_url': 'http://test.com/data'})
         expected = '\n'.join((
-            '<script>',
-            "  google.load('visualization', '1');",
-            '  google.setOnLoadCallback(function() {',
-            '    google.visualization.drawChart({',
+            self.inline_prefix,
             "      containerId: 'chart',",
             "      chartType: 'LineChart',",
             "      dataSourceUrl: 'http://test.com/data'",
-            '    });',
-            '  });',
-            '</script>',
-            ''))
+            self.inline_postfix))
         self.assertEqual(rendered, expected)
 
     def testRenderInlineNonDefault(self):
@@ -124,15 +123,9 @@ class GoogleChartTest(unittest.TestCase):
         rendered = render('chart', {'data_table': self.day_score,
                                     'container_id': 'foo'})
         expected = '\n'.join((
-            '<script>',
-            "  google.load('visualization', '1');",
-            '  google.setOnLoadCallback(function() {',
-            '    google.visualization.drawChart({',
+            self.inline_prefix,
             "      containerId: 'foo',",
             "      chartType: 'LineChart',",
             '      dataTable: {}'.format(self.day_score_json),
-            '    });',
-            '  });',
-            '</script>',
-            ''))
+            self.inline_postfix))
         self.assertEqual(rendered, expected)
