@@ -1,0 +1,10 @@
+<script>
+  google.load('visualization', '1');
+  google.setOnLoadCallback(function() {
+    google.visualization.drawChart({
+      containerId: '${structure: container_id}',
+      chartType: 'LineChart',
+      ${structure: data_line}
+    });
+  });
+</script>
