@@ -18,7 +18,7 @@
 
 __author__ = "Misha Seltzer"
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import distutils.core
 import unittest
 
@@ -46,16 +46,16 @@ class TestCommand(distutils.core.Command):
 setup(
     name="pyramid-charts",
     version="0.1",
-    description="Python API for Google Visualization",
+    description="Tools for making graphs/charts in Pyramid",
     long_description="""
 The Python API for Google Visualization makes it easy to convert python data
 structures into Google Visualization JS code, DataTable JSon construction
 string or JSon response for Query object.
 """.strip(),
     author="Amit Weinstein, Misha Seltzer",
-    install_requires=['six'],
+    install_requires=['six', 'pyramid'],
     license="Apache 2.0",
     url="https://github.com/pib/pyramid-charts",
-    py_modules=["pyramid_charts"],
+    packages=find_packages(),
     cmdclass={"test": TestCommand},
 )

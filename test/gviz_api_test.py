@@ -33,6 +33,7 @@ from pyramid_charts.gviz_api import DataTableException
 
 
 class DataTableTest(unittest.TestCase):
+  maxDiff = None
 
   def testCoerceValue(self):
     # We first check that given an unknown type it raises exception
@@ -330,6 +331,7 @@ class DataTableTest(unittest.TestCase):
     self.assertEqual(4, table.NumberOfRows())
     self.assertEqual(json.dumps(json_obj,
                                 separators=(",", ":"),
+                                sort_keys=True,
                                 ensure_ascii=False).encode("utf-8"),
                      table.ToJSon())
     table.AppendData([[-1, "w", False]])
@@ -337,6 +339,7 @@ class DataTableTest(unittest.TestCase):
     json_obj["rows"].append({"c": [{"v": -1}, {"v": "w"}, {"v": False}]})
     self.assertEqual(json.dumps(json_obj,
                                 separators=(",", ":"),
+                                sort_keys=True,
                                 ensure_ascii=False).encode("utf-8"),
                      table.ToJSon())
 
@@ -350,7 +353,7 @@ class DataTableTest(unittest.TestCase):
                                        ("dt", "datetime")]})
     table.LoadData({date(1, 2, 3): [time(1, 2, 3)]})
     self.assertEqual(1, table.NumberOfRows())
-    self.assertEqual(json.dumps(json_obj, separators=(",", ":")).encode("utf-8"),
+    self.assertEqual(json.dumps(json_obj, separators=(",", ":"), sort_keys=True).encode("utf-8"),
                      table.ToJSon(columns_order=["t", "d", "dt"]))
 
     json_obj["rows"] = [
@@ -364,7 +367,7 @@ class DataTableTest(unittest.TestCase):
                     date(3, 4, 5): []})
     self.assertEqual(2, table.NumberOfRows())
 
-    self.assertEqual(json.dumps(json_obj, separators=(",", ":")).encode("utf-8"),
+    self.assertEqual(json.dumps(json_obj, separators=(",", ":"), sort_keys=True).encode("utf-8"),
                      table.ToJSon(columns_order=["t", "d", "dt"]))
 
     json_obj = {
@@ -376,7 +379,7 @@ class DataTableTest(unittest.TestCase):
     table = DataTable({"a\"": ("b", "number", "bb\"", {})},
                       {"a1": 1, "a2": 2, "a3": 3})
     self.assertEqual(3, table.NumberOfRows())
-    self.assertEqual(json.dumps(json_obj, separators=(",", ":")).encode("utf-8"),
+    self.assertEqual(json.dumps(json_obj, separators=(",", ":"), sort_keys=True).encode("utf-8"),
                      table.ToJSon())
 
   def testCustomProperties(self):
@@ -420,7 +423,7 @@ class DataTableTest(unittest.TestCase):
                      custom_properties={"row_cp": "row_v"})
     table.AppendData([[None, ("z", None, {"cell_cp": "cell_v"}), True], [3]])
     table.SetRowsCustomProperties(2, {"row_cp2": "row_v2"})
-    self.assertEqual(json.dumps(json_obj, separators=(",", ":")).encode("utf-8"),
+    self.assertEqual(json.dumps(json_obj, separators=(",", ":"), sort_keys=True).encode("utf-8"),
                      table.ToJSon())
     self.assertEqual(jscode, table.ToJSCode("mytab"))
 

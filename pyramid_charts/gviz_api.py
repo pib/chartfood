@@ -62,6 +62,7 @@ class DataTableJSONEncoder(json.JSONEncoder):
   def __init__(self):
     json.JSONEncoder.__init__(self,
                               separators=(",", ":"),
+                              sort_keys=True,
                               ensure_ascii=False)
 
   def default(self, o):
