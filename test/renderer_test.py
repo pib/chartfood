@@ -1,4 +1,5 @@
 from datetime import date
+from .dummy_cache import DummyCache
 from pyramid_charts.gviz_api import DataTable
 from pyramid.renderers import render
 
@@ -129,3 +130,54 @@ class GoogleChartTest(unittest.TestCase):
             '      dataTable: {}'.format(self.day_score_json),
             self.inline_postfix))
         self.assertEqual(rendered, expected)
+
+    def testRenderInlineCached(self):
+        self.config.add_renderer(name='chart',
+                                 factory='pyramid_charts.InlineChartRenderer')
+
+        cache = DummyCache()
+
+        rendered = render('chart', {'datasource_url': 'http://test.com/data',
+                                    'cache': cache,
+                                    'container_id': 'foo'})
+        expected = '\n'.join((
+            self.inline_prefix,
+            "      containerId: 'foo',",
+            "      chartType: 'LineChart',",
+            "      dataSourceUrl: 'http://test.com/data'",
+            self.inline_postfix))
+        self.assertEqual(rendered, expected)
+
+        cache['http://test.com/data'] = self.day_score
+
+        rendered = render('chart', {'datasource_url': 'http://test.com/data',
+                                    'cache': cache,
+                                    'container_id': 'foo'})
+        expected = '\n'.join((
+            self.inline_prefix,
+            "      containerId: 'foo',",
+            "      chartType: 'LineChart',",
+            "      dataTable: {}".format(self.day_score_json),
+            self.inline_postfix))
+        self.assertEqual(rendered, expected)
+
+    def testRenderChartResponseCache(self):
+        cache = DummyCache()
+        req = pyramid.testing.DummyRequest({'tqx': 'reqId:42'})
+        req.path_url = 'http://test.com/data'
+        self.config.add_renderer(
+            name='chart_response',
+            factory='pyramid_charts.ChartResponseRenderer')
+
+        expected = ('google.visualization.Query.setResponse({{"reqId":"42",'
+                    '"status":"ok","table":{},"version":"0.6"}});'
+                    ).format(self.day_score_json)
+
+        args = {
+            'data_table': self.day_score,
+            'cache': cache
+        }
+        rendered = render('chart_response', args, request=req)
+        self.assertEqual(rendered, expected)
+
+        self.assertEqual(cache.get('http://test.com/data'), self.day_score)
