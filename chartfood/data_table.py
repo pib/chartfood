@@ -51,12 +51,12 @@ else:
     return s.decode(encoding)
 
 
-class DataTableException(Exception):
-  """The general exception object thrown by DataTable."""
+class TableException(Exception):
+  """The general exception object thrown by Table."""
   pass
 
 
-class DataTableJSONEncoder(json.JSONEncoder):
+class TableJSONEncoder(json.JSONEncoder):
   """JSON encoder that handles date/time/datetime objects correctly."""
 
   def __init__(self):
@@ -81,11 +81,11 @@ class DataTableJSONEncoder(json.JSONEncoder):
     elif isinstance(o, datetime.time):
       return [o.hour, o.minute, o.second]
     else:
-      return super(DataTableJSONEncoder, self).default(o)
+      return super(TableJSONEncoder, self).default(o)
 
 
-class DataTable(object):
-  """Wraps the data to convert to a Google Visualization API DataTable.
+class Table(object):
+  """Wraps the data to convert to a Google Visualization API Table.
 
   Create this object, populate it with data, then call one of the ToJS...
   methods to return a string representation of the data in the format described.
@@ -95,7 +95,7 @@ class DataTable(object):
   specified in the class constructor.
 
   You can add new data one or more rows at a time. All data added to an
-  instantiated DataTable must conform to the schema passed in to __init__().
+  instantiated Table must conform to the schema passed in to __init__().
 
   You can reorder the columns in the output table, and also specify row sorting
   order by column. The default column order is according to the original
@@ -175,7 +175,7 @@ class DataTable(object):
                          later changed by changing self.custom_properties.
 
     Raises:
-      DataTableException: Raised if the data and the description did not match,
+      TableException: Raised if the data and the description did not match,
                           or did not use the supported formats.
     """
     self.__columns = self.TableDescriptionParser(table_description)
@@ -222,7 +222,7 @@ class DataTable(object):
         CoerceValue(0, "boolean") returns False
 
     Raises:
-      DataTableException: The value and type did not match in a not-recoverable
+      TableException: The value and type did not match in a not-recoverable
                           way, for example given value 'abc' for type 'number'.
     """
     if isinstance(value, tuple):
@@ -230,12 +230,12 @@ class DataTable(object):
       # add the formatted value.
       if (len(value) not in [2, 3] or
           (len(value) == 3 and not isinstance(value[2], dict))):
-        raise DataTableException("Wrong format for value and formatting - %s." %
+        raise TableException("Wrong format for value and formatting - %s." %
                                  str(value))
       if not isinstance(value[1], (six.string_types, type(None))):
-        raise DataTableException("Formatted value is not string, given %s." %
+        raise TableException("Formatted value is not string, given %s." %
                                  type(value[1]))
-      js_value = DataTable.CoerceValue(value[0], value_type)
+      js_value = Table.CoerceValue(value[0], value_type)
       return (js_value,) + value[1:]
 
     t_value = type(value)
@@ -247,7 +247,7 @@ class DataTable(object):
     elif value_type == "number":
       if isinstance(value, (six.integer_types, float)):
         return value
-      raise DataTableException("Wrong type %s when expected number" % t_value)
+      raise TableException("Wrong type %s when expected number" % t_value)
 
     elif value_type == "string":
       if isinstance(value, six.text_type):
@@ -263,7 +263,7 @@ class DataTable(object):
       elif isinstance(value, datetime.date):
         return value
       else:
-        raise DataTableException("Wrong type %s when expected date" % t_value)
+        raise TableException("Wrong type %s when expected date" % t_value)
 
     elif value_type == "timeofday":
       if isinstance(value, datetime.datetime):
@@ -271,17 +271,17 @@ class DataTable(object):
       elif isinstance(value, datetime.time):
         return value
       else:
-        raise DataTableException("Wrong type %s when expected time" % t_value)
+        raise TableException("Wrong type %s when expected time" % t_value)
 
     elif value_type == "datetime":
       if isinstance(value, datetime.datetime):
         return value
       else:
-        raise DataTableException("Wrong type %s when expected datetime" %
+        raise TableException("Wrong type %s when expected datetime" %
                                  t_value)
     # If we got here, it means the given value_type was not one of the
     # supported types.
-    raise DataTableException("Unsupported type %s" % value_type)
+    raise TableException("Unsupported type %s" % value_type)
 
   @staticmethod
   def EscapeForJSCode(encoder, value):
@@ -346,14 +346,14 @@ class DataTable(object):
           default.
 
     Raises:
-      DataTableException: The column description did not match the RE, or
+      TableException: The column description did not match the RE, or
           unsupported type was passed.
     """
     if not description:
-      raise DataTableException("Description error: empty description given")
+      raise TableException("Description error: empty description given")
 
     if not isinstance(description, (six.string_types, tuple)):
-      raise DataTableException("Description error: expected either string or "
+      raise TableException("Description error: expected either string or "
                                "tuple, got %s." % type(description))
 
     if isinstance(description, six.string_types):
@@ -363,7 +363,7 @@ class DataTable(object):
     # We verify everything is of type string
     for elem in description[:3]:
       if not isinstance(elem, six.string_types):
-        raise DataTableException("Description error: expected tuple of "
+        raise TableException("Description error: expected tuple of "
                                  "strings, current element of type %s." %
                                  type(elem))
     desc_dict = {"id": description[0],
@@ -376,15 +376,15 @@ class DataTable(object):
         desc_dict["label"] = description[2]
         if len(description) > 3:
           if not isinstance(description[3], dict):
-            raise DataTableException("Description error: expected custom "
+            raise TableException("Description error: expected custom "
                                      "properties of type dict, current element "
                                      "of type %s." % type(description[3]))
           desc_dict["custom_properties"] = description[3]
           if len(description) > 4:
-            raise DataTableException("Description error: tuple of length > 4")
+            raise TableException("Description error: tuple of length > 4")
     if desc_dict["type"] not in ["string", "number", "boolean",
                                  "date", "datetime", "timeofday"]:
-      raise DataTableException(
+      raise TableException(
           "Description error: unsupported type '%s'" % desc_dict["type"])
     return desc_dict
 
@@ -393,7 +393,7 @@ class DataTable(object):
     """Parses the table_description object for internal use.
 
     Parses the user-submitted table description into an internal format used
-    by the Python DataTable class. Returns the flat list of parsed columns.
+    by the Python Table class. Returns the flat list of parsed columns.
 
     Args:
       table_description: A description of the table which should comply
@@ -414,7 +414,7 @@ class DataTable(object):
       The returned description is flattened regardless of how it was given.
 
     Raises:
-      DataTableException: Error in a column description or in the description
+      TableException: Error in a column description or in the description
                           structure.
 
     Examples:
@@ -480,30 +480,30 @@ class DataTable(object):
     """
     # For the recursion step, we check for a scalar object (string or tuple)
     if isinstance(table_description, (six.string_types, tuple)):
-      parsed_col = DataTable.ColumnTypeParser(table_description)
+      parsed_col = Table.ColumnTypeParser(table_description)
       parsed_col["depth"] = depth
       parsed_col["container"] = "scalar"
       return [parsed_col]
 
     # Since it is not scalar, table_description must be iterable.
     if not hasattr(table_description, "__iter__"):
-      raise DataTableException("Expected an iterable object, got %s" %
+      raise TableException("Expected an iterable object, got %s" %
                                type(table_description))
     if not isinstance(table_description, dict):
       # We expects a non-dictionary iterable item.
       columns = []
       for desc in table_description:
-        parsed_col = DataTable.ColumnTypeParser(desc)
+        parsed_col = Table.ColumnTypeParser(desc)
         parsed_col["depth"] = depth
         parsed_col["container"] = "iter"
         columns.append(parsed_col)
       if not columns:
-        raise DataTableException("Description iterable objects should not"
+        raise TableException("Description iterable objects should not"
                                  " be empty.")
       return columns
     # The other case is a dictionary
     if not table_description:
-      raise DataTableException("Empty dictionaries are not allowed inside"
+      raise TableException("Empty dictionaries are not allowed inside"
                                " description")
 
     # To differentiate between the two cases of more levels below or this is
@@ -524,19 +524,19 @@ class DataTable(object):
         # We parse the column type as (key, type) or (key, type, label) using
         # ColumnTypeParser.
         if isinstance(value, tuple):
-          parsed_col = DataTable.ColumnTypeParser((key,) + value)
+          parsed_col = Table.ColumnTypeParser((key,) + value)
         else:
-          parsed_col = DataTable.ColumnTypeParser((key, value))
+          parsed_col = Table.ColumnTypeParser((key, value))
         parsed_col["depth"] = depth
         parsed_col["container"] = "dict"
         columns.append(parsed_col)
       return columns
     # This is an outer dictionary, must have at most one key.
-    parsed_col = DataTable.ColumnTypeParser(list(table_description.keys())[0])
+    parsed_col = Table.ColumnTypeParser(list(table_description.keys())[0])
     parsed_col["depth"] = depth
     parsed_col["container"] = "dict"
     return ([parsed_col] +
-            DataTable.TableDescriptionParser(list(table_description.values())[0],
+            Table.TableDescriptionParser(list(table_description.values())[0],
                                              depth=depth + 1))
 
   @property
@@ -594,7 +594,7 @@ class DataTable(object):
                          custom properties to add to all the rows.
 
     Raises:
-      DataTableException: The data structure does not match the description.
+      TableException: The data structure does not match the description.
     """
     # If the maximal depth is 0, we simply iterate over the data table
     # lines and insert them using _InnerAppendData. Otherwise, we simply
@@ -609,7 +609,7 @@ class DataTable(object):
     """Inner function to assist LoadData."""
     # We first check that col_index has not exceeded the columns size
     if col_index >= len(self.__columns):
-      raise DataTableException("The data does not match description, too deep")
+      raise TableException("The data does not match description, too deep")
 
     # Dealing with the scalar case, the data is the last value.
     if self.__columns[col_index]["container"] == "scalar":
@@ -619,13 +619,13 @@ class DataTable(object):
 
     if self.__columns[col_index]["container"] == "iter":
       if not hasattr(data, "__iter__") or isinstance(data, dict):
-        raise DataTableException("Expected iterable object, got %s" %
+        raise TableException("Expected iterable object, got %s" %
                                  type(data))
       # We only need to insert the rest of the columns
       # If there are less items than expected, we only add what there is.
       for value in data:
         if col_index >= len(self.__columns):
-          raise DataTableException("Too many elements given in data")
+          raise TableException("Too many elements given in data")
         prev_col_values[0][self.__columns[col_index]["id"]] = value
         col_index += 1
       self.__data.append(prev_col_values)
@@ -633,7 +633,7 @@ class DataTable(object):
 
     # We know the current level is a dictionary, we verify the type.
     if not isinstance(data, dict):
-      raise DataTableException("Expected dictionary at current level, got %s" %
+      raise TableException("Expected dictionary at current level, got %s" %
                                type(data))
     # We check if this is the last level
     if self.__columns[col_index]["depth"] == self.__columns[-1]["depth"]:
@@ -672,7 +672,7 @@ class DataTable(object):
       The data sorted by the keys given.
 
     Raises:
-      DataTableException: Sort direction not in 'asc' or 'desc'
+      TableException: Sort direction not in 'asc' or 'desc'
     """
     if not order_by:
       return self.__data
@@ -692,7 +692,7 @@ class DataTable(object):
         key_fn = lambda row: row[0].get(key[0])
         reverse = False if key[1].lower() == "asc" else True
       else:
-        raise DataTableException("Expected tuple with second value: "
+        raise TableException("Expected tuple with second value: "
                                  "'asc' or 'desc'")
 
       data = sorted(data, key=key_fn, reverse=reverse)
@@ -703,11 +703,11 @@ class DataTable(object):
     """Writes the data table as a JS code string.
 
     This method writes a string of JS code that can be run to
-    generate a DataTable with the specified data. Typically used for debugging
+    generate a Table with the specified data. Typically used for debugging
     only.
 
     Args:
-      name: The name of the table. The name would be used as the DataTable's
+      name: The name of the table. The name would be used as the Table's
             variable name in the created JS code.
       columns_order: Optional. Specifies the order of columns in the
                      output table. Specify a list of all column IDs in the order
@@ -718,10 +718,10 @@ class DataTable(object):
                 Passed as is to _PreparedData.
 
     Returns:
-      A string of JS code that, when run, generates a DataTable with the given
-      name and the data stored in the DataTable object.
+      A string of JS code that, when run, generates a Table with the given
+      name and the data stored in the Table object.
       Example result:
-        "var tab1 = new google.visualization.DataTable();
+        "var tab1 = new google.visualization.Table();
          tab1.addColumn("string", "a", "a");
          tab1.addColumn("number", "b", "b");
          tab1.addColumn("boolean", "c", "c");
@@ -735,17 +735,17 @@ class DataTable(object):
          tab1.setCell(9, 2, false);"
 
     Raises:
-      DataTableException: The data does not match the type.
+      TableException: The data does not match the type.
     """
 
-    encoder = DataTableJSONEncoder()
+    encoder = TableJSONEncoder()
 
     if columns_order is None:
       columns_order = [col["id"] for col in self.__columns]
     col_dict = dict([(col["id"], col) for col in self.__columns])
 
     # We first create the table with the given name
-    jscode = "var %s = new google.visualization.DataTable();\n" % name
+    jscode = "var %s = new google.visualization.Table();\n" % name
     if self.custom_properties:
       jscode += "%s.setTableProperties(%s);\n" % (
           name, encoder.encode(self.custom_properties))
@@ -810,7 +810,7 @@ class DataTable(object):
        </table></body></html>
 
     Raises:
-      DataTableException: The data does not match the type.
+      TableException: The data does not match the type.
     """
     table_template = "<html><body><table border=\"1\">%s</table></body></html>"
     columns_template = "<thead><tr>%s</tr></thead>"
@@ -870,7 +870,7 @@ class DataTable(object):
        3,'w',''
 
     Raises:
-      DataTableException: The data does not match the type.
+      TableException: The data does not match the type.
     """
 
     csv_buffer = six.StringIO()
@@ -975,17 +975,17 @@ class DataTable(object):
     return json_obj
 
   def ToJSon(self, columns_order=None, order_by=()):
-    """Returns a string that can be used in a JS DataTable constructor.
+    """Returns a string that can be used in a JS Table constructor.
 
     This method writes a JSON string that can be passed directly into a Google
-    Visualization API DataTable constructor. Use this output if you are
+    Visualization API Table constructor. Use this output if you are
     hosting the visualization HTML on your site, and want to code the data
     table in Python. Pass this string into the
-    google.visualization.DataTable constructor, e.g,:
+    google.visualization.Table constructor, e.g,:
       ... on my page that hosts my visualization ...
       google.setOnLoadCallback(drawTable);
       function drawTable() {
-        var data = new google.visualization.DataTable(_my_JSon_string, 0.6);
+        var data = new google.visualization.Table(_my_JSon_string, 0.6);
         myTable.draw(data);
       }
 
@@ -999,8 +999,8 @@ class DataTable(object):
                 Passed as is to _PreparedData().
 
     Returns:
-      A JSon constructor string to generate a JS DataTable with the data
-      stored in the DataTable object.
+      A JSon constructor string to generate a JS Table with the data
+      stored in the Table object.
       Example result (the result is without the newlines):
        {cols: [{id:"a",label:"a",type:"number"},
                {id:"b",label:"b",type:"string"},
@@ -1009,10 +1009,10 @@ class DataTable(object):
         p:    {'foo': 'bar'}}
 
     Raises:
-      DataTableException: The data does not match the type.
+      TableException: The data does not match the type.
     """
 
-    encoder = DataTableJSONEncoder()
+    encoder = TableJSONEncoder()
     return encoder.encode(
         self._ToJSonObj(columns_order, order_by)).encode("utf-8")
 
@@ -1034,7 +1034,7 @@ class DataTable(object):
 
     Returns:
       A JSON response string to be received by JS the visualization Query
-      object. This response would be translated into a DataTable on the
+      object. This response would be translated into a Table on the
       client side.
       Example result (newlines added for readability):
        google.visualization.Query.setResponse({
@@ -1051,7 +1051,7 @@ class DataTable(object):
         "table": self._ToJSonObj(columns_order, order_by),
         "status": "ok"
     }
-    encoder = DataTableJSONEncoder()
+    encoder = TableJSONEncoder()
     return "%s(%s);" % (response_handler,
                         encoder.encode(response_obj))
 
@@ -1078,13 +1078,13 @@ class DataTable(object):
       A response string, as returned by the relevant response function.
 
     Raises:
-      DataTableException: One of the parameters passed in tqx is not supported.
+      TableException: One of the parameters passed in tqx is not supported.
     """
     tqx_dict = {}
     if tqx:
       tqx_dict = dict(opt.split(":") for opt in tqx.split(";"))
     if tqx_dict.get("version", "0.6") != "0.6":
-      raise DataTableException(
+      raise TableException(
           "Version (%s) passed by request is not supported."
           % tqx_dict["version"])
 
@@ -1101,5 +1101,5 @@ class DataTable(object):
     elif tqx_dict["out"] == "tsv-excel":
       return self.ToTsvExcel(columns_order, order_by)
     else:
-      raise DataTableException(
+      raise TableException(
           "'out' parameter: '%s' is not supported" % tqx_dict["out"])

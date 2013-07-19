@@ -1,4 +1,4 @@
-from .data_table import DataTable
+from .data_table import Table
 from datetime import datetime
 
 
@@ -11,16 +11,16 @@ _type_to_type = {
 }
 
 
-class GaDataTable(DataTable):
+class GaTable(Table):
     def __init__(self, ga_data):
-        """ A DataTable which takes a Google Analytics response dict
+        """ A Table which takes a Google Analytics response dict
         """
 
         columns = [self.convert_ga_column(c) for c in ga_data['columnHeaders']]
         column_types = [c[1] for c in columns]
         data = self.convert_ga_rows(ga_data['rows'], column_types)
 
-        super(GaDataTable, self).__init__(columns, data)
+        super(GaTable, self).__init__(columns, data)
 
     def convert_ga_column(self, column):
         name = column['name']

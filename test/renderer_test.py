@@ -1,6 +1,6 @@
 from datetime import date
 from .dummy_cache import DummyCache
-from chartfood.data_table import DataTable
+from chartfood.data_table import Table
 from pyramid.renderers import render
 
 import json
@@ -13,11 +13,11 @@ class GoogleChartTest(unittest.TestCase):
 
     def setUp(self):
         self.config = pyramid.testing.setUp()
-        self.day_score = DataTable([('day', 'date'), ('score', 'number')],
-                                   [[date(2013, 12, 11), 42],
-                                    [date(2013, 12, 12), 45],
-                                    [date(2013, 12, 13), 32],
-                                    [date(2013, 12, 14), 15]])
+        self.day_score = Table([('day', 'date'), ('score', 'number')],
+                               [[date(2013, 12, 11), 42],
+                                [date(2013, 12, 12), 45],
+                                [date(2013, 12, 13), 32],
+                                [date(2013, 12, 14), 15]])
         day_score_dict = {
             "cols": [
                 {"id": "day", "label": "day", "type": "date"},

@@ -28,71 +28,71 @@ except ImportError:
     import simplejson as json
 import unittest
 
-from chartfood.data_table import DataTable
-from chartfood.data_table import DataTableException
+from chartfood.data_table import Table
+from chartfood.data_table import TableException
 
 
-class DataTableTest(unittest.TestCase):
+class TableTest(unittest.TestCase):
     maxDiff = None
 
     def testCoerceValue(self):
         # We first check that given an unknown type it raises exception
-        self.assertRaises(DataTableException,
-                          DataTable.CoerceValue, 1, "no_such_type")
+        self.assertRaises(TableException,
+                          Table.CoerceValue, 1, "no_such_type")
 
         # If we give a type which does not match the value, we expect
         # it to fail
-        self.assertRaises(DataTableException,
-                          DataTable.CoerceValue, "a", "number")
-        self.assertRaises(DataTableException,
-                          DataTable.CoerceValue, "b", "timeofday")
-        self.assertRaises(DataTableException,
-                          DataTable.CoerceValue, 10, "date")
+        self.assertRaises(TableException,
+                          Table.CoerceValue, "a", "number")
+        self.assertRaises(TableException,
+                          Table.CoerceValue, "b", "timeofday")
+        self.assertRaises(TableException,
+                          Table.CoerceValue, 10, "date")
 
         # A tuple for value and formatted value should be of length 2
-        self.assertRaises(DataTableException,
-                          DataTable.CoerceValue, (5, "5$", "6$"), "string")
+        self.assertRaises(TableException,
+                          Table.CoerceValue, (5, "5$", "6$"), "string")
 
         # Some good examples from all the different types
-        self.assertEqual(True, DataTable.CoerceValue(True, "boolean"))
-        self.assertEqual(False, DataTable.CoerceValue(False, "boolean"))
-        self.assertEqual(True, DataTable.CoerceValue(1, "boolean"))
-        self.assertEqual(None, DataTable.CoerceValue(None, "boolean"))
+        self.assertEqual(True, Table.CoerceValue(True, "boolean"))
+        self.assertEqual(False, Table.CoerceValue(False, "boolean"))
+        self.assertEqual(True, Table.CoerceValue(1, "boolean"))
+        self.assertEqual(None, Table.CoerceValue(None, "boolean"))
         self.assertEqual((False, u"a"),
-                         DataTable.CoerceValue((False, "a"), "boolean"))
+                         Table.CoerceValue((False, "a"), "boolean"))
 
-        self.assertEqual(1, DataTable.CoerceValue(1, "number"))
-        self.assertEqual(1., DataTable.CoerceValue(1., "number"))
-        self.assertEqual(-5, DataTable.CoerceValue(-5, "number"))
-        self.assertEqual(None, DataTable.CoerceValue(None, "number"))
+        self.assertEqual(1, Table.CoerceValue(1, "number"))
+        self.assertEqual(1., Table.CoerceValue(1., "number"))
+        self.assertEqual(-5, Table.CoerceValue(-5, "number"))
+        self.assertEqual(None, Table.CoerceValue(None, "number"))
         self.assertEqual((5, u"5$"),
-                         DataTable.CoerceValue((5, "5$"), "number"))
+                         Table.CoerceValue((5, "5$"), "number"))
 
-        self.assertEqual("-5", DataTable.CoerceValue(-5, "string"))
-        self.assertEqual("abc", DataTable.CoerceValue("abc", "string"))
-        self.assertEqual(None, DataTable.CoerceValue(None, "string"))
+        self.assertEqual("-5", Table.CoerceValue(-5, "string"))
+        self.assertEqual("abc", Table.CoerceValue("abc", "string"))
+        self.assertEqual(None, Table.CoerceValue(None, "string"))
 
         self.assertEqual(date(2010, 1, 2),
-                         DataTable.CoerceValue(date(2010, 1, 2), "date"))
+                         Table.CoerceValue(date(2010, 1, 2), "date"))
         self.assertEqual(date(2001, 2, 3),
-                         DataTable.CoerceValue(datetime(2001, 2, 3, 4, 5, 6),
+                         Table.CoerceValue(datetime(2001, 2, 3, 4, 5, 6),
                                                "date"))
-        self.assertEqual(None, DataTable.CoerceValue(None, "date"))
+        self.assertEqual(None, Table.CoerceValue(None, "date"))
 
         self.assertEqual(time(10, 11, 12),
-                         DataTable.CoerceValue(time(10, 11, 12), "timeofday"))
+                         Table.CoerceValue(time(10, 11, 12), "timeofday"))
         self.assertEqual(time(3, 4, 5),
-                         DataTable.CoerceValue(datetime(2010, 1, 2, 3, 4, 5),
+                         Table.CoerceValue(datetime(2010, 1, 2, 3, 4, 5),
                                                "timeofday"))
-        self.assertEqual(None, DataTable.CoerceValue(None, "timeofday"))
+        self.assertEqual(None, Table.CoerceValue(None, "timeofday"))
 
         self.assertEqual(datetime(2001, 2, 3, 4, 5, 6, 555000),
-                         DataTable.CoerceValue(datetime(2001, 2, 3, 4, 5, 6,
+                         Table.CoerceValue(datetime(2001, 2, 3, 4, 5, 6,
                                                         555000),
                                                "datetime"))
-        self.assertEqual(None, DataTable.CoerceValue(None, "datetime"))
+        self.assertEqual(None, Table.CoerceValue(None, "datetime"))
         self.assertEqual((None, "none"),
-                         DataTable.CoerceValue((None, "none"), "string"))
+                         Table.CoerceValue((None, "none"), "string"))
 
     def testDifferentStrings(self):
         # Checking escaping of strings in JSON output
@@ -104,7 +104,7 @@ class DataTableTest(unittest.TestCase):
             u"unicode \u05e2\u05d1\u05e8\u05d9\u05ea",
             u"unicode \u05e2\u05d1\u05e8\u05d9\u05ea".encode("utf-8"),
             u'"\u05e2\u05d1\\"\u05e8\u05d9\u05ea"']
-        table = DataTable([("a", "string")],
+        table = Table([("a", "string")],
                           [[x] for x in the_strings])
 
         json_obj = json.loads(table.ToJSon().decode('utf-8'))
@@ -118,53 +118,53 @@ class DataTableTest(unittest.TestCase):
 
     def testColumnTypeParser(self):
         # Checking several wrong formats
-        self.assertRaises(DataTableException,
-                          DataTable.ColumnTypeParser, 5)
-        self.assertRaises(DataTableException,
-                          DataTable.ColumnTypeParser, ("a", 5, "c"))
-        self.assertRaises(DataTableException,
-                          DataTable.ColumnTypeParser, ("a", "blah"))
-        self.assertRaises(DataTableException,
-                          DataTable.ColumnTypeParser,
+        self.assertRaises(TableException,
+                          Table.ColumnTypeParser, 5)
+        self.assertRaises(TableException,
+                          Table.ColumnTypeParser, ("a", 5, "c"))
+        self.assertRaises(TableException,
+                          Table.ColumnTypeParser, ("a", "blah"))
+        self.assertRaises(TableException,
+                          Table.ColumnTypeParser,
                           ("a", "number", "c", "d"))
 
         # Checking several legal formats
         self.assertEqual({"id": "abc", "label": "abc", "type": "string",
                           "custom_properties": {}},
-                         DataTable.ColumnTypeParser("abc"))
+                         Table.ColumnTypeParser("abc"))
         self.assertEqual({"id": "abc", "label": "abc", "type": "string",
                           "custom_properties": {}},
-                         DataTable.ColumnTypeParser(("abc",)))
+                         Table.ColumnTypeParser(("abc",)))
         self.assertEqual({"id": "abc", "label": "bcd", "type": "string",
                           "custom_properties": {}},
-                         DataTable.ColumnTypeParser(("abc", "string", "bcd")))
+                         Table.ColumnTypeParser(("abc", "string", "bcd")))
         self.assertEqual({"id": "a", "label": "b", "type": "number",
                           "custom_properties": {}},
-                         DataTable.ColumnTypeParser(("a", "number", "b")))
+                         Table.ColumnTypeParser(("a", "number", "b")))
         self.assertEqual({"id": "a", "label": "a", "type": "number",
                           "custom_properties": {}},
-                         DataTable.ColumnTypeParser(("a", "number")))
+                         Table.ColumnTypeParser(("a", "number")))
         self.assertEqual({"id": "i", "label": "l", "type": "string",
                           "custom_properties": {"key": "value"}},
-                         DataTable.ColumnTypeParser(("i", "string", "l",
+                         Table.ColumnTypeParser(("i", "string", "l",
                                                      {"key": "value"})))
 
     def testTableDescriptionParser(self):
         # We expect it to fail with empty lists or dictionaries
-        self.assertRaises(DataTableException,
-                          DataTable.TableDescriptionParser, {})
-        self.assertRaises(DataTableException,
-                          DataTable.TableDescriptionParser, [])
-        self.assertRaises(DataTableException,
-                          DataTable.TableDescriptionParser, {"a": []})
-        self.assertRaises(DataTableException,
-                          DataTable.TableDescriptionParser, {"a": {"b": {}}})
+        self.assertRaises(TableException,
+                          Table.TableDescriptionParser, {})
+        self.assertRaises(TableException,
+                          Table.TableDescriptionParser, [])
+        self.assertRaises(TableException,
+                          Table.TableDescriptionParser, {"a": []})
+        self.assertRaises(TableException,
+                          Table.TableDescriptionParser, {"a": {"b": {}}})
 
         # We expect it to fail if we give a non-string at the lowest level
-        self.assertRaises(DataTableException,
-                          DataTable.TableDescriptionParser, {"a": 5})
-        self.assertRaises(DataTableException,
-                          DataTable.TableDescriptionParser,
+        self.assertRaises(TableException,
+                          Table.TableDescriptionParser, {"a": 5})
+        self.assertRaises(TableException,
+                          Table.TableDescriptionParser,
                           [("a", "number"), 6])
 
         # Some valid examples which mixes both dictionaries and lists
@@ -173,7 +173,7 @@ class DataTableTest(unittest.TestCase):
               "depth": 0, "container": "iter", "custom_properties": {}},
              {"id": "b", "label": "b", "type": "timeofday",
               "depth": 0, "container": "iter", "custom_properties": {}}],
-            DataTable.TableDescriptionParser([("a", "date"),
+            Table.TableDescriptionParser([("a", "date"),
                                               ("b", "timeofday")]))
 
         self.assertEqual(
@@ -183,7 +183,7 @@ class DataTableTest(unittest.TestCase):
               "depth": 1, "container": "iter", "custom_properties": {}},
              {"id": "c", "label": "column c", "type": "string",
               "depth": 1, "container": "iter", "custom_properties": {}}],
-            DataTable.TableDescriptionParser(
+            Table.TableDescriptionParser(
                 {"a": [("b", "number"), ("c", "string", "column c")]}))
 
         self.assertEqual(
@@ -191,7 +191,7 @@ class DataTableTest(unittest.TestCase):
               "container": "dict", "custom_properties": {}},
              {"id": "b", "label": "column b", "type": "string", "depth": 0,
               "container": "dict", "custom_properties": {}}],
-            DataTable.TableDescriptionParser({"a": ("number", "column a"),
+            Table.TableDescriptionParser({"a": ("number", "column a"),
                                               "b": ("string", "column b")}))
 
         self.assertEqual(
@@ -201,7 +201,7 @@ class DataTableTest(unittest.TestCase):
               "depth": 1, "container": "dict", "custom_properties": {}},
              {"id": "c", "label": "c", "type": "string",
               "depth": 1, "container": "dict", "custom_properties": {}}],
-            DataTable.TableDescriptionParser(
+            Table.TableDescriptionParser(
                 {("a", "number", "column a"): {"b": "number", "c": "string"}}))
 
         self.assertEqual(
@@ -209,15 +209,15 @@ class DataTableTest(unittest.TestCase):
               "depth": 0, "container": "dict", "custom_properties": {}},
              {"id": "b", "label": "column b", "type": "string",
               "depth": 1, "container": "scalar", "custom_properties": {}}],
-            DataTable.TableDescriptionParser(
+            Table.TableDescriptionParser(
                 {("a", "number", "column a"): ("b", "string", "column b")}))
 
         # Cases that might create ambiguity
         self.assertEqual(
             [{"id": "a", "label": "column a", "type": "number", "depth": 0,
               "container": "dict", "custom_properties": {}}],
-            DataTable.TableDescriptionParser({"a": ("number", "column a")}))
-        self.assertRaises(DataTableException, DataTable.TableDescriptionParser,
+            Table.TableDescriptionParser({"a": ("number", "column a")}))
+        self.assertRaises(TableException, Table.TableDescriptionParser,
                           {"a": ("b", "number")})
 
         self.assertEqual(
@@ -225,54 +225,54 @@ class DataTableTest(unittest.TestCase):
               "container": "dict", "custom_properties": {}},
              {"id": "b", "label": "b", "type": "number", "depth": 1,
               "container": "scalar", "custom_properties": {}}],
-            DataTable.TableDescriptionParser({"a": ("b", "number", "b", {})}))
+            Table.TableDescriptionParser({"a": ("b", "number", "b", {})}))
 
         self.assertEqual(
             [{"id": "a", "label": "a", "type": "string", "depth": 0,
               "container": "dict", "custom_properties": {}},
              {"id": "b", "label": "b", "type": "number", "depth": 1,
               "container": "scalar", "custom_properties": {}}],
-            DataTable.TableDescriptionParser({("a",): ("b", "number")}))
+            Table.TableDescriptionParser({("a",): ("b", "number")}))
 
     def testAppendData(self):
         # We check a few examples where the format of the data does
         # not match the description and hen a few valid examples. The
         # test for the content itself is done inside the ToJSCode and
         # ToJSon functions.
-        table = DataTable([("a", "number"), ("b", "string")])
+        table = Table([("a", "number"), ("b", "string")])
         self.assertEqual(0, table.NumberOfRows())
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, [[1, "a", True]])
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, {1: ["a"], 2: ["b"]})
         self.assertEqual(None, table.AppendData([[1, "a"], [2, "b"]]))
         self.assertEqual(2, table.NumberOfRows())
         self.assertEqual(None, table.AppendData([[3, "c"], [4]]))
         self.assertEqual(4, table.NumberOfRows())
 
-        table = DataTable({"a": "number", "b": "string"})
+        table = Table({"a": "number", "b": "string"})
         self.assertEqual(0, table.NumberOfRows())
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, [[1, "a"]])
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, {5: {"b": "z"}})
         self.assertEqual(None, table.AppendData([{"a": 1, "b": "z"}]))
         self.assertEqual(1, table.NumberOfRows())
 
-        table = DataTable({("a", "number"): [("b", "string")]})
+        table = Table({("a", "number"): [("b", "string")]})
         self.assertEqual(0, table.NumberOfRows())
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, [[1, "a"]])
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, {5: {"b": "z"}})
         self.assertEqual(None, table.AppendData({5: ["z"], 6: ["w"]}))
         self.assertEqual(2, table.NumberOfRows())
 
-        table = DataTable({("a", "number"): {"b": "string", "c": "number"}})
+        table = Table({("a", "number"): {"b": "string", "c": "number"}})
         self.assertEqual(0, table.NumberOfRows())
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, [[1, "a"]])
-        self.assertRaises(DataTableException,
+        self.assertRaises(TableException,
                           table.AppendData, {1: ["a", 2]})
         self.assertEqual(None, table.AppendData({5: {"b": "z", "c": 6},
                                                  7: {"c": 8},
@@ -280,13 +280,13 @@ class DataTableTest(unittest.TestCase):
         self.assertEqual(3, table.NumberOfRows())
 
     def testToJSCode(self):
-        table = DataTable([("a", "number", "A'"), "b\"", ("c", "timeofday")],
+        table = Table([("a", "number", "A'"), "b\"", ("c", "timeofday")],
                           [[1],
                            [None, "z", time(1, 2, 3)],
                            [(2, "2$"), "w", time(2, 3, 4)]])
         self.assertEqual(3, table.NumberOfRows())
         self.assertEqual(
-            (u"var mytab = new google.visualization.DataTable();\n"
+            (u"var mytab = new google.visualization.Table();\n"
              u"mytab.addColumn(\"number\", \"A'\", \"a\");\n"
              u"mytab.addColumn(\"string\", \"b\\\"\", \"b\\\"\");\n"
              u"mytab.addColumn(\"timeofday\", \"c\", \"c\");\n"
@@ -299,14 +299,14 @@ class DataTableTest(unittest.TestCase):
              u"mytab.setCell(2, 2, [2,3,4]);\n"),
             table.ToJSCode("mytab"))
 
-        table = DataTable({("a", "number"): {"b": "date", "c": "datetime"}},
+        table = Table({("a", "number"): {"b": "date", "c": "datetime"}},
                           {1: {},
                            2: {"b": date(1, 2, 3)},
                            3: {"c": datetime(1, 2, 3, 4, 5, 6, 555000)},
                            4: {"c": datetime(1, 2, 3, 4, 5, 6)}})
         self.assertEqual(4, table.NumberOfRows())
         self.assertEqual(
-            ("var mytab2 = new google.visualization.DataTable();\n"
+            ("var mytab2 = new google.visualization.Table();\n"
              'mytab2.addColumn("datetime", "c", "c");\n'
              'mytab2.addColumn("date", "b", "b");\n'
              'mytab2.addColumn("number", "a", "a");\n'
@@ -331,7 +331,7 @@ class DataTableTest(unittest.TestCase):
                      {"c": [None, {"v": u"\u05d0"}, None]},
                      {"c": [None, {"v": u"\u05d1"}, None]}]}
 
-        table = DataTable([("a", "number", "A"), "b", ("c", "boolean")],
+        table = Table([("a", "number", "A"), "b", ("c", "boolean")],
                           [[1],
                            [None, "z", True],
                            [None, u"\u05d0"],
@@ -357,7 +357,7 @@ class DataTableTest(unittest.TestCase):
                      {"id": "dt", "label": "dt", "type": "datetime"}],
                     "rows":
                     [{"c": [{"v": [1, 2, 3]}, {"v": "Date(1,1,3)"}, None]}]}
-        table = DataTable({("d", "date"): [("t", "timeofday", "T"),
+        table = Table({("d", "date"): [("t", "timeofday", "T"),
                                            ("dt", "datetime")]})
         table.LoadData({date(1, 2, 3): [time(1, 2, 3)]})
         self.assertEqual(1, table.NumberOfRows())
@@ -388,7 +388,7 @@ class DataTableTest(unittest.TestCase):
             "rows": [{"c": [{"v": "a1"}, {"v": 1}]},
                      {"c": [{"v": "a2"}, {"v": 2}]},
                      {"c": [{"v": "a3"}, {"v": 3}]}]}
-        table = DataTable({"a\"": ("b", "number", "bb\"", {})},
+        table = Table({"a\"": ("b", "number", "bb\"", {})},
                           {"a1": 1, "a2": 2, "a3": 3})
         self.assertEqual(3, table.NumberOfRows())
         self.assertEqual(json.dumps(json_obj,
@@ -416,7 +416,7 @@ class DataTableTest(unittest.TestCase):
                               "p": {"row_cp2": "row_v2"}}],
                     "p": {"global_cp": "global_v"}}
         jscode = (
-            "var mytab = new google.visualization.DataTable();\n"
+            "var mytab = new google.visualization.Table();\n"
             "mytab.setTableProperties({\"global_cp\":\"global_v\"});\n"
             "mytab.addColumn(\"number\", \"A\", \"a\");\n"
             "mytab.setColumnProperties(0, {\"col_cp\":\"col_v\"});\n"
@@ -431,7 +431,7 @@ class DataTableTest(unittest.TestCase):
             "mytab.setCell(2, 0, 3);\n"
             "mytab.setRowProperties(2, {\"row_cp2\":\"row_v2\"});\n")
 
-        table = DataTable([("a", "number", "A", {"col_cp": "col_v"}), "b",
+        table = Table([("a", "number", "A", {"col_cp": "col_v"}), "b",
                            ("c", "boolean")],
                           custom_properties={"global_cp": "global_v"})
         table.AppendData([[1, None, (None, None, {"null_cp": "null_v"})]],
@@ -450,7 +450,7 @@ class DataTableTest(unittest.TestCase):
                                      "1,,",
                                      ",zz'top,true",
                                      ""])
-        table = DataTable([("a", "number", "A"), "b\"", ("c", "boolean")],
+        table = Table([("a", "number", "A"), "b\"", ("c", "boolean")],
                           [[(1, "$1")], [None, "zz'top", True]])
         self.assertEqual(init_data_csv, table.ToCsv())
         table.AppendData([[-1, "w", False]])
@@ -463,7 +463,7 @@ class DataTableTest(unittest.TestCase):
             "\"time \"\"2 3 4\"\"\",1902-03-04,1901-02-03 04:05:06",
             ",1903-04-05,",
             ""])
-        table = DataTable({("d", "date"): [("t", "timeofday", "T"),
+        table = Table({("d", "date"): [("t", "timeofday", "T"),
                                            ("dt", "datetime")]})
         table.LoadData({date(1901, 2, 3): [time(1, 2, 3)],
                         date(1902, 3, 4): [(time(2, 3, 4), 'time "2 3 4"'),
@@ -473,7 +473,7 @@ class DataTableTest(unittest.TestCase):
                          table.ToCsv(columns_order=["t", "d", "dt"]))
 
     def testToTsvExcel(self):
-        table = DataTable({("d", "date"): [("t", "timeofday", "T"),
+        table = Table({("d", "date"): [("t", "timeofday", "T"),
                                            ("dt", "datetime")]})
         table.LoadData({date(1901, 2, 3): [time(1, 2, 3)],
                         date(1902, 3, 4): [(time(2, 3, 4), 'time "2 3 4"'),
@@ -493,7 +493,7 @@ class DataTableTest(unittest.TestCase):
             "<tr><td>$1</td><td></td><td></td></tr>"
             "<tr><td></td><td>&lt;z&gt;</td><td>true</td></tr>"
             "</tbody>") + html_table_footer
-        table = DataTable([("a", "number", "A<"), "b>", ("c", "boolean")],
+        table = Table([("a", "number", "A<"), "b>", ("c", "boolean")],
                           [[(1, "$1")], [None, "<z>", True]])
         self.assertEqual(init_data_html.replace("\n", ""), table.ToHtml())
 
@@ -507,7 +507,7 @@ class DataTableTest(unittest.TestCase):
             "<td>0001-02-03 04:05:06</td></tr>"
             "<tr><td></td><td>0003-04-05</td><td></td></tr>"
             "</tbody>") + html_table_footer
-        table = DataTable({("d", "date"): [("t", "timeofday", "T"),
+        table = Table({("d", "date"): [("t", "timeofday", "T"),
                                            ("dt", "datetime")]})
         table.LoadData({date(1, 2, 3): [time(1, 2, 3)],
                         date(2, 3, 4): [(time(2, 3, 4), "time 2 3 4"),
@@ -519,15 +519,15 @@ class DataTableTest(unittest.TestCase):
     def testOrderBy(self):
         data = [("b", 3), ("a", 3), ("a", 2), ("b", 1)]
         description = ["col1", ("col2", "number", "Second Column")]
-        table = DataTable(description, data)
+        table = Table(description, data)
 
-        table_num_sorted = DataTable(description,
+        table_num_sorted = Table(description,
                                      sorted(data, key=lambda x: (x[1], x[0])))
 
-        table_str_sorted = DataTable(description,
+        table_str_sorted = Table(description,
                                      sorted(data, key=lambda x: x[0]))
 
-        table_diff_sorted = DataTable(description,
+        table_diff_sorted = Table(description,
                                       sorted(sorted(data, key=lambda x: x[1]),
                                              key=lambda x: x[0], reverse=True))
 
@@ -551,7 +551,7 @@ class DataTableTest(unittest.TestCase):
         description = ["col1", "col2", "col3"]
         data = [("1", "2", "3"), ("a", "b", "c"), ("One", "Two", "Three")]
         req_id = 4
-        table = DataTable(description, data)
+        table = Table(description, data)
 
         start_str_default = r"google.visualization.Query.setResponse"
         start_str_handler = r"MyHandlerFunction"
@@ -580,12 +580,12 @@ class DataTableTest(unittest.TestCase):
     def testToResponse(self):
         description = ["col1", "col2", "col3"]
         data = [("1", "2", "3"), ("a", "b", "c"), ("One", "Two", "Three")]
-        table = DataTable(description, data)
+        table = Table(description, data)
 
         self.assertEqual(table.ToResponse(), table.ToJSonResponse())
         self.assertEqual(table.ToResponse(tqx="out:csv"), table.ToCsv())
         self.assertEqual(table.ToResponse(tqx="out:html"), table.ToHtml())
-        self.assertRaises(DataTableException, table.ToResponse,
+        self.assertRaises(TableException, table.ToResponse,
                           tqx="version:0.1")
         self.assertEqual(
             table.ToResponse(tqx="reqId:4;responseHandler:handle"),
@@ -600,7 +600,7 @@ class DataTableTest(unittest.TestCase):
             table.ToHtml(columns_order=("col3", "col2", "col1")))
         self.assertRaises(ValueError, table.ToResponse,
                           tqx="SomeWrongTqxFormat")
-        self.assertRaises(DataTableException, table.ToResponse, tqx="out:bad")
+        self.assertRaises(TableException, table.ToResponse, tqx="out:bad")
 
 
 if __name__ == "__main__":

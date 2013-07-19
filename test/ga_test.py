@@ -1,4 +1,4 @@
-from chartfood.ga import GaDataTable
+from chartfood.ga import GaTable
 
 import json
 import unittest
@@ -7,7 +7,7 @@ import unittest
 class GaTest(unittest.TestCase):
     maxDiff = None
 
-    def testGaToDataTable(self):
+    def testGaToTable(self):
         ga = {
             "columnHeaders": [
                 {
@@ -39,5 +39,5 @@ class GaTest(unittest.TestCase):
             ]
         }
 
-        dt = json.loads(GaDataTable(ga).ToJSon().decode('utf-8'))
+        dt = json.loads(GaTable(ga).ToJSon().decode('utf-8'))
         self.assertEqual(dt, dt_expected)
