@@ -28,8 +28,8 @@ except ImportError:
     import simplejson as json
 import unittest
 
-from chartfood.data_table import Table
-from chartfood.data_table import TableException
+from chartfood.table import Table
+from chartfood.table import TableException
 
 
 class TableTest(unittest.TestCase):

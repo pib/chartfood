@@ -1,4 +1,4 @@
-from .data_table import Table
+from .table import Table
 from datetime import datetime
 
 
