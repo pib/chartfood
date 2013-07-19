@@ -28,8 +28,8 @@ except ImportError:
     import simplejson as json
 import unittest
 
-from pyramid_charts.gviz_api import DataTable
-from pyramid_charts.gviz_api import DataTableException
+from chartfood.data_table import DataTable
+from chartfood.data_table import DataTableException
 
 
 class DataTableTest(unittest.TestCase):

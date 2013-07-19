@@ -1,6 +1,6 @@
 from datetime import date
 from .dummy_cache import DummyCache
-from pyramid_charts.gviz_api import DataTable
+from chartfood.data_table import DataTable
 from pyramid.renderers import render
 
 import json
@@ -49,7 +49,7 @@ class GoogleChartTest(unittest.TestCase):
 
     def testRenderInlineGoogleChart(self):
         self.config.add_renderer(name='chart',
-                                 factory='pyramid_charts.InlineChartRenderer')
+                                 factory='chartfood.InlineChartRenderer')
 
         rendered = render('chart', self.day_score)
         expected = '\n'.join((
@@ -64,7 +64,7 @@ class GoogleChartTest(unittest.TestCase):
         req = pyramid.testing.DummyRequest({'tqx': 'reqId:42'})
         self.config.add_renderer(
             name='chart_response',
-            factory='pyramid_charts.ChartResponseRenderer')
+            factory='chartfood.ChartResponseRenderer')
 
         rendered = render('chart_response', self.day_score, request=req)
         expected = ('google.visualization.Query.setResponse({{"reqId":"42",'
@@ -78,7 +78,7 @@ class GoogleChartTest(unittest.TestCase):
         })
         self.config.add_renderer(
             name='chart_response',
-            factory='pyramid_charts.ChartResponseRenderer')
+            factory='chartfood.ChartResponseRenderer')
 
         rendered = render('chart_response', self.day_score, request=req)
         expected = ('google.visualization.Query.setResponse({{"reqId":"42",'
@@ -92,7 +92,7 @@ class GoogleChartTest(unittest.TestCase):
         })
         self.config.add_renderer(
             name='chart_response',
-            factory='pyramid_charts.ChartResponseRenderer')
+            factory='chartfood.ChartResponseRenderer')
 
         rendered = render('chart_response', self.day_score, request=req)
         expected = '\r\n'.join(('day,score',
@@ -106,7 +106,7 @@ class GoogleChartTest(unittest.TestCase):
     def testRenderInlineDatasourceResponse(self):
         self.config.add_renderer(
             name='chart',
-            factory='pyramid_charts.InlineChartRenderer')
+            factory='chartfood.InlineChartRenderer')
 
         rendered = render('chart', {'datasource_url': 'http://test.com/data'})
         expected = '\n'.join((
@@ -119,7 +119,7 @@ class GoogleChartTest(unittest.TestCase):
 
     def testRenderInlineNonDefault(self):
         self.config.add_renderer(name='chart',
-                                 factory='pyramid_charts.InlineChartRenderer')
+                                 factory='chartfood.InlineChartRenderer')
 
         rendered = render('chart', {'data_table': self.day_score,
                                     'container_id': 'foo'})
@@ -133,7 +133,7 @@ class GoogleChartTest(unittest.TestCase):
 
     def testRenderInlineCached(self):
         self.config.add_renderer(name='chart',
-                                 factory='pyramid_charts.InlineChartRenderer')
+                                 factory='chartfood.InlineChartRenderer')
 
         cache = DummyCache()
 
@@ -167,7 +167,7 @@ class GoogleChartTest(unittest.TestCase):
         req.path_url = 'http://test.com/data'
         self.config.add_renderer(
             name='chart_response',
-            factory='pyramid_charts.ChartResponseRenderer')
+            factory='chartfood.ChartResponseRenderer')
 
         expected = ('google.visualization.Query.setResponse({{"reqId":"42",'
                     '"status":"ok","table":{},"version":"0.6"}});'

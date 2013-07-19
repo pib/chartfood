@@ -1,4 +1,4 @@
-from pyramid_charts.ga import GaDataTable
+from chartfood.ga import GaDataTable
 
 import json
 import unittest

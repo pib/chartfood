@@ -3,9 +3,9 @@ from pyramid.renderers import render
 
 def includeme(config):
     config.add_renderer(name='chart',
-                        factory='pyramid_charts.InlineChartRenderer')
+                        factory='chartfood.InlineChartRenderer')
     config.add_renderer(name='chart_response',
-                        factory='pyramid_charts.ChartResponseRenderer')
+                        factory='chartfood.ChartResponseRenderer')
 
 
 class ChartRenderer(object):
@@ -48,7 +48,7 @@ class InlineChartRenderer(ChartRenderer):
             tpl_vars['data_line'] = "dataSourceUrl: '{}'".format(
                 tpl_vars['datasource_url'])
 
-        return render('pyramid_charts:templates/inline_chart.pt', tpl_vars)
+        return render('chartfood:templates/inline_chart.pt', tpl_vars)
 
 
 class ChartResponseRenderer(ChartRenderer):
