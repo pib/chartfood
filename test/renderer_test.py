@@ -1,6 +1,6 @@
 from datetime import date
 from .dummy_cache import DummyCache
-from chartfood.data_table import Table
+from chartfood.table import Table
 from pyramid.renderers import render
 
 import json
