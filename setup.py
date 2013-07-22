@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="chartfood",
-    version="0.1",
+    version="0.1dev",
     description="Tools for making stuff to feed to graphs/charts",
     author="Paul Bonser",
     install_requires=['six', 'pyramid'],
