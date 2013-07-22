@@ -38,16 +38,16 @@ class TableTest(unittest.TestCase):
     def testMerge(self):
         t1 = Table([('a', 'number'), ('b', 'string')],
                    data=[(1, 'foo'), (2, 'bar')])
-        t2 = Table([('c', 'number'), ('d', 'string')],
+        t2 = Table([('c', 'number'), ('a', 'string')],
                    data=[(3, 'fizz'), (4, 'buzz')])
         t3 = t1.merge(t2)
 
         expected = {
             'cols': [
-                {'id': 'a', 'label': 'a', 'type': 'number'},
-                {'id': 'b', 'label': 'b', 'type': 'string'},
-                {'id': 'c', 'label': 'c', 'type': 'number'},
-                {'id': 'd', 'label': 'd', 'type': 'string'}
+                {'id': 'a_1', 'label': 'a', 'type': 'number'},
+                {'id': 'b_1', 'label': 'b', 'type': 'string'},
+                {'id': 'c_2', 'label': 'c', 'type': 'number'},
+                {'id': 'a_2', 'label': 'a', 'type': 'string'}
             ],
             'rows': [
                 {'c': [{'v': 1}, {'v': 'foo'}, {'v': 3}, {'v': 'fizz'}]},
