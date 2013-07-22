@@ -205,8 +205,11 @@ class Table(object):
             self.LoadData(data)
 
     def merge(self, other):
+        other_columns = other.columns
+        other_columns[0]['custom_properties']['role'] = 'scope'
+
         columns = ([self.column_to_def(c, '_1') for c in self.columns] +
-                   [self.column_to_def(c, '_2') for c in other.columns])
+                   [self.column_to_def(c, '_2') for c in other_columns])
         data = [dict(chain(self._rename_columns(d1[0].items(), '_1'),
                            self._rename_columns(d2[0].items(), '_2')))
                 for d1, d2 in zip(self._PreparedData(), other._PreparedData())]
