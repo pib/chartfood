@@ -8,5 +8,8 @@ setup(
     install_requires=['six', 'pyramid'],
     license="Apache 2.0",
     url="https://github.com/pib/chartfood",
-    packages=find_packages()
+    packages=find_packages(),
+    package_data={
+        '': ['*.pt']
+    }
 )
