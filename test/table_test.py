@@ -97,20 +97,20 @@ class TableTest(unittest.TestCase):
                          Table.CoerceValue(date(2010, 1, 2), "date"))
         self.assertEqual(date(2001, 2, 3),
                          Table.CoerceValue(datetime(2001, 2, 3, 4, 5, 6),
-                                               "date"))
+                                           "date"))
         self.assertEqual(None, Table.CoerceValue(None, "date"))
 
         self.assertEqual(time(10, 11, 12),
                          Table.CoerceValue(time(10, 11, 12), "timeofday"))
         self.assertEqual(time(3, 4, 5),
                          Table.CoerceValue(datetime(2010, 1, 2, 3, 4, 5),
-                                               "timeofday"))
+                                           "timeofday"))
         self.assertEqual(None, Table.CoerceValue(None, "timeofday"))
 
         self.assertEqual(datetime(2001, 2, 3, 4, 5, 6, 555000),
                          Table.CoerceValue(datetime(2001, 2, 3, 4, 5, 6,
-                                                        555000),
-                                               "datetime"))
+                                                    555000),
+                                           "datetime"))
         self.assertEqual(None, Table.CoerceValue(None, "datetime"))
         self.assertEqual((None, "none"),
                          Table.CoerceValue((None, "none"), "string"))
@@ -126,7 +126,7 @@ class TableTest(unittest.TestCase):
             u"unicode \u05e2\u05d1\u05e8\u05d9\u05ea".encode("utf-8"),
             u'"\u05e2\u05d1\\"\u05e8\u05d9\u05ea"']
         table = Table([("a", "string")],
-                          [[x] for x in the_strings])
+                      [[x] for x in the_strings])
 
         json_obj = json.loads(table.ToJSon().decode('utf-8'))
         for i, row in enumerate(json_obj["rows"]):
@@ -168,7 +168,7 @@ class TableTest(unittest.TestCase):
         self.assertEqual({"id": "i", "label": "l", "type": "string",
                           "custom_properties": {"key": "value"}},
                          Table.ColumnTypeParser(("i", "string", "l",
-                                                     {"key": "value"})))
+                                                 {"key": "value"})))
 
     def testTableDescriptionParser(self):
         # We expect it to fail with empty lists or dictionaries
@@ -195,7 +195,7 @@ class TableTest(unittest.TestCase):
              {"id": "b", "label": "b", "type": "timeofday",
               "depth": 0, "container": "iter", "custom_properties": {}}],
             Table.TableDescriptionParser([("a", "date"),
-                                              ("b", "timeofday")]))
+                                          ("b", "timeofday")]))
 
         self.assertEqual(
             [{"id": "a", "label": "a", "type": "string",
@@ -213,7 +213,7 @@ class TableTest(unittest.TestCase):
              {"id": "b", "label": "column b", "type": "string", "depth": 0,
               "container": "dict", "custom_properties": {}}],
             Table.TableDescriptionParser({"a": ("number", "column a"),
-                                              "b": ("string", "column b")}))
+                                          "b": ("string", "column b")}))
 
         self.assertEqual(
             [{"id": "a", "label": "column a", "type": "number",
@@ -302,9 +302,9 @@ class TableTest(unittest.TestCase):
 
     def testToJSCode(self):
         table = Table([("a", "number", "A'"), "b\"", ("c", "timeofday")],
-                          [[1],
-                           [None, "z", time(1, 2, 3)],
-                           [(2, "2$"), "w", time(2, 3, 4)]])
+                      [[1],
+                       [None, "z", time(1, 2, 3)],
+                       [(2, "2$"), "w", time(2, 3, 4)]])
         self.assertEqual(3, table.NumberOfRows())
         self.assertEqual(
             (u"var mytab = new google.visualization.Table();\n"
@@ -321,10 +321,10 @@ class TableTest(unittest.TestCase):
             table.ToJSCode("mytab"))
 
         table = Table({("a", "number"): {"b": "date", "c": "datetime"}},
-                          {1: {},
-                           2: {"b": date(1, 2, 3)},
-                           3: {"c": datetime(1, 2, 3, 4, 5, 6, 555000)},
-                           4: {"c": datetime(1, 2, 3, 4, 5, 6)}})
+                      {1: {},
+                       2: {"b": date(1, 2, 3)},
+                       3: {"c": datetime(1, 2, 3, 4, 5, 6, 555000)},
+                       4: {"c": datetime(1, 2, 3, 4, 5, 6)}})
         self.assertEqual(4, table.NumberOfRows())
         self.assertEqual(
             ("var mytab2 = new google.visualization.Table();\n"
@@ -353,10 +353,10 @@ class TableTest(unittest.TestCase):
                      {"c": [None, {"v": u"\u05d1"}, None]}]}
 
         table = Table([("a", "number", "A"), "b", ("c", "boolean")],
-                          [[1],
-                           [None, "z", True],
-                           [None, u"\u05d0"],
-                           [None, u"\u05d1".encode("utf-8")]])
+                      [[1],
+                       [None, "z", True],
+                       [None, u"\u05d0"],
+                       [None, u"\u05d1".encode("utf-8")]])
         self.assertEqual(4, table.NumberOfRows())
         self.assertEqual(json.dumps(json_obj,
                                     separators=(",", ":"),
@@ -379,7 +379,7 @@ class TableTest(unittest.TestCase):
                     "rows":
                     [{"c": [{"v": [1, 2, 3]}, {"v": "Date(1,1,3)"}, None]}]}
         table = Table({("d", "date"): [("t", "timeofday", "T"),
-                                           ("dt", "datetime")]})
+                                       ("dt", "datetime")]})
         table.LoadData({date(1, 2, 3): [time(1, 2, 3)]})
         self.assertEqual(1, table.NumberOfRows())
         self.assertEqual(json.dumps(json_obj,
@@ -410,7 +410,7 @@ class TableTest(unittest.TestCase):
                      {"c": [{"v": "a2"}, {"v": 2}]},
                      {"c": [{"v": "a3"}, {"v": 3}]}]}
         table = Table({"a\"": ("b", "number", "bb\"", {})},
-                          {"a1": 1, "a2": 2, "a3": 3})
+                      {"a1": 1, "a2": 2, "a3": 3})
         self.assertEqual(3, table.NumberOfRows())
         self.assertEqual(json.dumps(json_obj,
                                     separators=(",", ":"),
@@ -453,8 +453,8 @@ class TableTest(unittest.TestCase):
             "mytab.setRowProperties(2, {\"row_cp2\":\"row_v2\"});\n")
 
         table = Table([("a", "number", "A", {"col_cp": "col_v"}), "b",
-                           ("c", "boolean")],
-                          custom_properties={"global_cp": "global_v"})
+                       ("c", "boolean")],
+                      custom_properties={"global_cp": "global_v"})
         table.AppendData([[1, None, (None, None, {"null_cp": "null_v"})]],
                          custom_properties={"row_cp": "row_v"})
         table.AppendData([[None, ("z", None, {"cell_cp": "cell_v"}), True],
@@ -472,7 +472,7 @@ class TableTest(unittest.TestCase):
                                      ",zz'top,true",
                                      ""])
         table = Table([("a", "number", "A"), "b\"", ("c", "boolean")],
-                          [[(1, "$1")], [None, "zz'top", True]])
+                      [[(1, "$1")], [None, "zz'top", True]])
         self.assertEqual(init_data_csv, table.ToCsv())
         table.AppendData([[-1, "w", False]])
         init_data_csv = "%s%s\r\n" % (init_data_csv, "-1,w,false")
@@ -485,7 +485,7 @@ class TableTest(unittest.TestCase):
             ",1903-04-05,",
             ""])
         table = Table({("d", "date"): [("t", "timeofday", "T"),
-                                           ("dt", "datetime")]})
+                                       ("dt", "datetime")]})
         table.LoadData({date(1901, 2, 3): [time(1, 2, 3)],
                         date(1902, 3, 4): [(time(2, 3, 4), 'time "2 3 4"'),
                                            datetime(1901, 2, 3, 4, 5, 6)],
@@ -495,7 +495,7 @@ class TableTest(unittest.TestCase):
 
     def testToTsvExcel(self):
         table = Table({("d", "date"): [("t", "timeofday", "T"),
-                                           ("dt", "datetime")]})
+                                       ("dt", "datetime")]})
         table.LoadData({date(1901, 2, 3): [time(1, 2, 3)],
                         date(1902, 3, 4): [(time(2, 3, 4), 'time "2 3 4"'),
                                            datetime(1901, 2, 3, 4, 5, 6)],
@@ -515,7 +515,7 @@ class TableTest(unittest.TestCase):
             "<tr><td></td><td>&lt;z&gt;</td><td>true</td></tr>"
             "</tbody>") + html_table_footer
         table = Table([("a", "number", "A<"), "b>", ("c", "boolean")],
-                          [[(1, "$1")], [None, "<z>", True]])
+                      [[(1, "$1")], [None, "<z>", True]])
         self.assertEqual(init_data_html.replace("\n", ""), table.ToHtml())
 
         init_data_html = html_table_header + (
@@ -529,7 +529,7 @@ class TableTest(unittest.TestCase):
             "<tr><td></td><td>0003-04-05</td><td></td></tr>"
             "</tbody>") + html_table_footer
         table = Table({("d", "date"): [("t", "timeofday", "T"),
-                                           ("dt", "datetime")]})
+                                       ("dt", "datetime")]})
         table.LoadData({date(1, 2, 3): [time(1, 2, 3)],
                         date(2, 3, 4): [(time(2, 3, 4), "time 2 3 4"),
                                         datetime(1, 2, 3, 4, 5, 6)],
@@ -543,14 +543,14 @@ class TableTest(unittest.TestCase):
         table = Table(description, data)
 
         table_num_sorted = Table(description,
-                                     sorted(data, key=lambda x: (x[1], x[0])))
+                                 sorted(data, key=lambda x: (x[1], x[0])))
 
         table_str_sorted = Table(description,
-                                     sorted(data, key=lambda x: x[0]))
+                                 sorted(data, key=lambda x: x[0]))
 
         table_diff_sorted = Table(description,
-                                      sorted(sorted(data, key=lambda x: x[1]),
-                                             key=lambda x: x[0], reverse=True))
+                                  sorted(sorted(data, key=lambda x: x[1]),
+                                         key=lambda x: x[0], reverse=True))
 
         self.assertEqual(table_num_sorted.ToJSon(),
                          table.ToJSon(order_by=("col2", "col1")))
