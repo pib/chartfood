@@ -39,6 +39,7 @@ class GoogleChartTest(unittest.TestCase):
             '  google.setOnLoadCallback(function() {',
             '    google.visualization.drawChart({'))
         self.inline_postfix = '\n'.join((
+            "      options: {focusTarget: 'category'}",
             '    });',
             '  });',
             '</script>',
@@ -56,7 +57,7 @@ class GoogleChartTest(unittest.TestCase):
             self.inline_prefix,
             "      containerId: 'chart',",
             "      chartType: 'LineChart',",
-            '      dataTable: {}'.format(self.day_score_json),
+            '      dataTable: {},'.format(self.day_score_json),
             self.inline_postfix))
         self.assertEqual(rendered, expected)
 
@@ -113,7 +114,7 @@ class GoogleChartTest(unittest.TestCase):
             self.inline_prefix,
             "      containerId: 'chart',",
             "      chartType: 'LineChart',",
-            "      dataSourceUrl: 'http://test.com/data'",
+            "      dataSourceUrl: 'http://test.com/data',",
             self.inline_postfix))
         self.assertEqual(rendered, expected)
 
@@ -127,7 +128,7 @@ class GoogleChartTest(unittest.TestCase):
             self.inline_prefix,
             "      containerId: 'foo',",
             "      chartType: 'LineChart',",
-            '      dataTable: {}'.format(self.day_score_json),
+            '      dataTable: {},'.format(self.day_score_json),
             self.inline_postfix))
         self.assertEqual(rendered, expected)
 
@@ -144,7 +145,7 @@ class GoogleChartTest(unittest.TestCase):
             self.inline_prefix,
             "      containerId: 'foo',",
             "      chartType: 'LineChart',",
-            "      dataSourceUrl: 'http://test.com/data'",
+            "      dataSourceUrl: 'http://test.com/data',",
             self.inline_postfix))
         self.assertEqual(rendered, expected)
 
@@ -157,7 +158,7 @@ class GoogleChartTest(unittest.TestCase):
             self.inline_prefix,
             "      containerId: 'foo',",
             "      chartType: 'LineChart',",
-            "      dataTable: {}".format(self.day_score_json),
+            "      dataTable: {},".format(self.day_score_json),
             self.inline_postfix))
         self.assertEqual(rendered, expected)
 

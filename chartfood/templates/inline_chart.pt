@@ -4,7 +4,8 @@
     google.visualization.drawChart({
       containerId: '${structure: container_id}',
       chartType: 'LineChart',
-      ${structure: data_line}
+      ${structure: data_line},
+      options: {focusTarget: 'category'}
     });
   });
 </script>
