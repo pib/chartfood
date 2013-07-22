@@ -206,7 +206,7 @@ class Table(object):
 
     def merge(self, other):
         other_columns = other.columns
-        other_columns[0]['custom_properties']['role'] = 'scope'
+        other_columns[0]['custom_properties']['role'] = 'domain'
 
         columns = ([self.column_to_def(c, '_1') for c in self.columns] +
                    [self.column_to_def(c, '_2') for c in other_columns])

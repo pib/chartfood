@@ -47,7 +47,7 @@ class TableTest(unittest.TestCase):
                 {'id': 'a_1', 'label': 'a', 'type': 'number'},
                 {'id': 'b_1', 'label': 'b', 'type': 'string'},
                 {'id': 'c_2', 'label': 'c', 'type': 'number',
-                 'p': {'role': 'scope'}},
+                 'p': {'role': 'domain'}},
                 {'id': 'a_2', 'label': 'a', 'type': 'string'}
             ],
             'rows': [
