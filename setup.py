@@ -10,6 +10,6 @@ setup(
     url="https://github.com/pib/chartfood",
     packages=find_packages(),
     package_data={
-        '': ['*.pt']
+        'chartfood': ['templates/*']
     }
 )
