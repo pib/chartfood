@@ -28,7 +28,7 @@ class GaTable(Table):
         return (
             name,
             _name_to_type.get(name, _type_to_type.get(dtype, 'string')),
-            name.split(':')[1].capitalize()
+            column.get('title', name.split(':')[1].capitalize())
         )
 
     def convert_ga_rows(self, rows, column_types):
