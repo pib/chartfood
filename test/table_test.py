@@ -35,6 +35,27 @@ from chartfood.table import TableException
 class TableTest(unittest.TestCase):
     maxDiff = None
 
+    def testMerge(self):
+        t1 = Table([('a', 'number'), ('b', 'string')],
+                   data=[(1, 'foo'), (2, 'bar')])
+        t2 = Table([('c', 'number'), ('d', 'string')],
+                   data=[(3, 'fizz'), (4, 'buzz')])
+        t3 = t1.merge(t2)
+
+        expected = {
+            'cols': [
+                {'id': 'a', 'label': 'a', 'type': 'number'},
+                {'id': 'b', 'label': 'b', 'type': 'string'},
+                {'id': 'c', 'label': 'c', 'type': 'number'},
+                {'id': 'd', 'label': 'd', 'type': 'string'}
+            ],
+            'rows': [
+                {'c': [{'v': 1}, {'v': 'foo'}, {'v': 3}, {'v': 'fizz'}]},
+                {'c': [{'v': 2}, {'v': 'bar'}, {'v': 4}, {'v': 'buzz'}]}
+            ]
+        }
+        self.assertEqual(json.loads(t3.ToJSon().decode('utf-8')), expected)
+
     def testCoerceValue(self):
         # We first check that given an unknown type it raises exception
         self.assertRaises(TableException,

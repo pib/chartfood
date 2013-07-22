@@ -32,6 +32,7 @@ six.add_move(six.MovedAttribute('html_escape', 'cgi', 'html', 'escape'))
 from six.moves import html_escape
 import csv
 import datetime
+from itertools import chain
 try:
     import json
 except ImportError:
@@ -202,6 +203,18 @@ class Table(object):
             self.custom_properties = custom_properties
         if data:
             self.LoadData(data)
+
+    def merge(self, other):
+        columns = ([self.column_to_def(c) for c in self.columns] +
+                   [self.column_to_def(c) for c in other.columns])
+        data = [dict(chain(d1[0].items(), d2[0].items()))
+                for d1, d2 in zip(self._PreparedData(), other._PreparedData())]
+        data_list = [[row[column[0]] for column in columns] for row in data]
+        return Table(columns, data_list)
+
+    @staticmethod
+    def column_to_def(c):
+        return (c['id'], c['type'], c['label'], c['custom_properties'])
 
     @staticmethod
     def CoerceValue(value, value_type):
