@@ -9,6 +9,9 @@ _type_to_type = {
     'INTEGER': 'number',
     'STRING': 'string'
 }
+_column_type_to_p = {
+    'annotation': {'role': 'annotation'}
+}
 
 
 class GaTable(Table):
@@ -25,11 +28,15 @@ class GaTable(Table):
     def convert_ga_column(self, column):
         name = column['name']
         dtype = column['dataType']
-        return (
+        ga_column = (
             name,
             _name_to_type.get(name, _type_to_type.get(dtype, 'string')),
-            column.get('title', name.split(':')[1].capitalize())
+            column.get('title', name.split(':')[-1].capitalize())
         )
+        p = _column_type_to_p.get(column['columnType'])
+        if p:
+            ga_column = ga_column + (p,)
+        return ga_column
 
     def convert_ga_rows(self, rows, column_types):
         convert_fns = [getattr(self, '_convert_ga_' + ctype)
