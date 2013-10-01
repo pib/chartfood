@@ -12,11 +12,12 @@
       }
     });
   }
-  $(function() {
+  
+  window.onload = function() {
     var script = document.createElement('script');
     script.src = 'https://www.google.com/jsapi?callback=loadApi_${id(container_id)}';
     script.type = 'text/javascript';
     document.getElementsByTagName('head')[0].appendChild(script);
-  })
+  };
 </script>
 
