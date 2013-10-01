@@ -1,11 +1,22 @@
 <script>
-  google.load('visualization', '1');
-  google.setOnLoadCallback(function() {
-    google.visualization.drawChart({
-      containerId: '${structure: container_id}',
-      chartType: 'LineChart',
-      ${structure: data_line},
-      options: {focusTarget: 'category'}
+  function loadApi_${id(container_id)}() {
+    google.load('visualization', '1.1', {
+      packages: ['corechart'],
+      callback: function() {
+        google.visualization.drawChart({
+          containerId: '${structure: container_id}',
+          chartType: 'LineChart',
+          ${structure: data_line},
+          options: {focusTarget: 'category'}
+        });
+      }
     });
-  });
+  }
+  $(function() {
+    var script = document.createElement('script');
+    script.src = 'https://www.google.com/jsapi?callback=loadApi_${id(container_id)}';
+    script.type = 'text/javascript';
+    document.getElementsByTagName('head')[0].appendChild(script);
+  })
 </script>
+
